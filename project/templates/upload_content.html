@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Upload Content</h1>
+    <form action="" method="post" enctype=multipart/form-data novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.from_date.label }}<br>
+            {{ form.from_date(type='date') }}
+        </p>
+        <p>
+            {{ form.to_date.label }}<br>
+            {{ form.to_date(type='date') }}
+        </p>
+        <p>
+            {{ form.linie.label }}<br>
+            {{ form.linie }}
+        </p>
+        <p>
+            {{ form.content.label }}<br>
+            {{ form.content }}
+        </p>
+
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!-- templates/profile.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-12">
+                        <h3>
+                            User Profile
+                        </h3>
+                    </div>
+                </div>
+
+                <form method="post">
+                    <div class="row">
+                        <div class="col-12 form-group">
+                            <input type="text" name="first_name" required
+                                   placeholder="Title" class="form-control" value="{{ current_user.first_name }}">
+                        </div>
+                        <div class="col-12 form-group">
+                            <input type="text" name="last_name" required
+                                   placeholder="Title" class="form-control" value="{{ current_user.last_name }}">
+                        </div>
+                        <div class="col-12 form-group">
+                            <label id="email_error" style="color:red;display:none;" >This email already exist.</label>
+                            <input type="email" id='email' name="email" required
+                                   placeholder="Title" class="form-control" value="{{ current_user.email }}">
+                        </div>
+
+
+                        <div class="col-12 form-group">
+                            <input type="submit" value="submit" class="btn btn-success" style="background: pink;">
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+
+
+        $('form').submit(function (e) {
+
+            // this code prevents form from actually being submitted
+            e.preventDefault();
+            e.returnValue = false;
+
+
+            $.ajax({
+                type: 'post',
+                url: '/validate_email_address',
+                data: {"email": $('#email').val()}, // context will be "this" in your handlers
+                success: function (data) { // your success handler
+                    data = JSON.parse(data);
+                    if (data.can_update) {
+                        $('#email_error').hide()
+                        $('form').unbind( "submit" );
+                        $('form').submit()
+                    }else{
+                        $('#email_error').show()
+                    }
+                },
+                error: function () { // your error handler
+                },
+                complete: function () {
+                    // make sure that you are no longer handling the submit event; clear handler
+                    // actually submit the form
+
+                }
+            });
+
+        });
+
+    </script>
+
+{% endblock %}
