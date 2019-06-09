@@ -11,6 +11,7 @@ wtforms = "*"
 flask-wtf = "*"
 flask-migrate = "*"
 ffmpeg-python = "*"
+python-magic = "*"
 
 [dev-packages]
 

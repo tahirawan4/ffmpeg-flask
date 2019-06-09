@@ -15,6 +15,7 @@
             <th>From Date</th>
             <th>To date</th>
             <th>Content</th>
+            <th>File type</th>
             <th></th>
         </tr>
         </thead>
@@ -25,6 +26,7 @@
                 <td>{{ instance.to_date }}</td>
                 <td><a href="{{ url_for('uploaded_file', filename=instance.content) }}" target="_blank"><img
                         src="{{ url_for('uploaded_file', filename=instance.content) }}" width="50" height="50"></a></td>
+                 <td>{{ instance.file_type }}</td>
                 <td><a href="{{ url_for('delete_instance', id=instance.id) }}" class="btn btn-danger">Delete</a> <a
                         href="{{ url_for('edit_user', id=instance.id) }}"
                         class="btn btn-primary">Edit</a></td>

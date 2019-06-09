@@ -4,7 +4,7 @@ import json
 
 import os
 import subprocess
-from flask import Blueprint, render_template, request, send_from_directory, flash
+from flask import Blueprint, render_template, request, send_from_directory, flash, jsonify
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
@@ -86,14 +86,16 @@ def upload_content():
 
     if request.method == 'POST':
         if form.validate():
+            import magic
             file = request.files['content']
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_type = magic.from_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             second_filename = '{}_{}'.format(datetime.datetime.now().strftime("%y%m%d_%H%M%S"),
                                              secure_filename(file.filename))
             upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                              to_date=form.to_date.data,
-                                             content=second_filename, linie=form.linie.data or 0)
+                                             content=second_filename, linie=form.linie.data or 0, file_type=file_type)
             db.session.add(upload_content)
             db.session.commit()
 
@@ -188,3 +190,20 @@ def convert_video(video_input, video_output):
             os.path.join(app.config['UPLOAD_FOLDER'], video_output)]
 
     subprocess.Popen(cmds)
+
+
+@app.route('/playlist', methods=['GET'])
+@login_required
+def playlist():
+    data_instances = UploadedContent.query.all()
+    data = []
+    for instance in data_instances:
+        data.append({
+            "type": str(instance.file_type),
+            "Linie": str(instance.linie),
+            "date_from": instance.from_date.strftime("%m.%d.%Y"),
+            "to_from": instance.to_date.strftime("%m.%d.%Y"),
+            "filename": "{}{}/{}".format(request.url_root, 'uploaded_file', instance.content)
+        })
+
+    return jsonify(data)

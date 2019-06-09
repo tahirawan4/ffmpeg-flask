@@ -15,3 +15,5 @@ Command to setup project.
     flask db init #init the database
     flask db migrate  #it will create migrations, if there is any changes in models 
     flask db upgrade  #it will reflect models update in databse files 
+
+For file type detection => please install https://github.com/ahupp/python-magic

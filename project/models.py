@@ -21,3 +21,4 @@ class UploadedContent(db.Model):
     linie = db.Column(db.INTEGER)
     content = db.Column(db.String(200))
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    file_type = db.Column(db.String(200))
