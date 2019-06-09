@@ -91,3 +91,13 @@ def upload_content():
             flash('Content Uploaded Successfully')
 
     return render_template('upload_content.html', form=form)
+
+
+@app.route('/add_user', methods=['GET', 'POST'])
+def add_user():
+    return render_template('add_user.html', add_user='active')
+
+
+@app.route('/platform_users', methods=['GET', 'POST'])
+def platform_users():
+    return render_template('platform_users.html', platform_users='active')

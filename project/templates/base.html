@@ -77,6 +77,16 @@
             {#            <li class="nav-item">#}
             {#                <a class="nav-link" href="#">Pricing</a>#}
             {#            </li>#}
+
+            {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link {{ platform_users }}" href="{{ url_for('platform_users') }}">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ add_user }}" href="{{ url_for('add_user') }}">Add User</a>
+                </li>
+
+            {% endif %}
         </ul>
         <ul class="navbar-nav">
             {% if current_user.is_authenticated %}
@@ -107,15 +117,15 @@
     <div class="row">
         <div class="col-1"></div>
         <div class="col-10">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul class=flashes>
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+            {#            {% with messages = get_flashed_messages() %}#}
+            {#                {% if messages %}#}
+            {#                    <ul class=flashes>#}
+            {#                        {% for message in messages %}#}
+            {#                            <li>{{ message }}</li>#}
+            {#                        {% endfor %}#}
+            {#                    </ul>#}
+            {#                {% endif %}#}
+            {#            {% endwith %}#}
             {% block content %}
             {% endblock %}
         </div>
