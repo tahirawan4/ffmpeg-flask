@@ -3,6 +3,7 @@ import datetime
 import json
 
 import os
+import subprocess
 from flask import Blueprint, render_template, request, send_from_directory, flash
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
@@ -88,11 +89,15 @@ def upload_content():
             file = request.files['content']
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            second_filename = '{}_{}'.format(datetime.datetime.now().strftime("%y%m%d_%H%M%S"),
+                                             secure_filename(file.filename))
             upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                              to_date=form.to_date.data,
-                                             content=filename, linie=form.linie.data or 0)
+                                             content=second_filename, linie=form.linie.data or 0)
             db.session.add(upload_content)
             db.session.commit()
+
+            convert_video(filename, second_filename)
             flash('Content Uploaded Successfully')
             return redirect(url_for('data_instances'))
 
@@ -152,6 +157,15 @@ def delete_user(id):
     return redirect(url_for('platform_users'))
 
 
+@app.route('/delete_instance/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_instance(id):
+    instance = UploadedContent.query.filter_by(id=id).first()
+    db.session.delete(instance)
+    db.session.commit()
+    return redirect(url_for('data_instances'))
+
+
 @app.route('/platform_users', methods=['GET', 'POST'])
 @login_required
 def platform_users():
@@ -164,3 +178,13 @@ def platform_users():
 def data_instances():
     data_instances = UploadedContent.query.all()
     return render_template('data_instances.html', data_instance='active', data_instances=data_instances)
+
+
+def convert_video(video_input, video_output):
+    print(os.path.join(app.config['UPLOAD_FOLDER'], video_input))
+    cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input),
+            '-vf', 'scale=1440x900', '-vcodec', 'libx264', '-an', '-sn', '-map_metadata', '-1', '-preset', 'slower',
+            '-crf', '15', '-r', '25', '-pix_fmt', 'yuv420p', '-t', '14',
+            os.path.join(app.config['UPLOAD_FOLDER'], video_output)]
+
+    subprocess.Popen(cmds)

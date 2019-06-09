@@ -10,6 +10,7 @@ flask-sqlalchemy = "*"
 wtforms = "*"
 flask-wtf = "*"
 flask-migrate = "*"
+ffmpeg-python = "*"
 
 [dev-packages]
 
