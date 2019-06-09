@@ -56,9 +56,9 @@
      style="background-color: #F80!important;">
 
 
-
     <a class="navbar-brand" href="#">
-        <img src="https://getbootstrap.com/docs/4.1/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top"
+        <img src="https://getbootstrap.com/docs/4.1/assets/brand/bootstrap-solid.svg" width="30" height="30"
+             class="d-inline-block align-top"
              alt="">
 
     </a>
@@ -68,15 +68,15 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav mr-auto">
-{#            <li class="nav-item active">#}
-{#                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>#}
-{#            </li>#}
-{#            <li class="nav-item">#}
-{#                <a class="nav-link" href="#">Features</a>#}
-{#            </li>#}
-{#            <li class="nav-item">#}
-{#                <a class="nav-link" href="#">Pricing</a>#}
-{#            </li>#}
+            {#            <li class="nav-item active">#}
+            {#                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>#}
+            {#            </li>#}
+            {#            <li class="nav-item">#}
+            {#                <a class="nav-link" href="#">Features</a>#}
+            {#            </li>#}
+            {#            <li class="nav-item">#}
+            {#                <a class="nav-link" href="#">Pricing</a>#}
+            {#            </li>#}
         </ul>
         <ul class="navbar-nav">
             {% if current_user.is_authenticated %}
@@ -107,6 +107,15 @@
     <div class="row">
         <div class="col-1"></div>
         <div class="col-10">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul class=flashes>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
             {% block content %}
             {% endblock %}
         </div>
@@ -114,53 +123,6 @@
     </div>
 </div>
 
-{#<section class="hero is-primary is-fullheight">#}
-{#    {% with messages = get_flashed_messages() %}#}
-{#        {% if messages %}#}
-{#            <ul class=flashes>#}
-{#                {% for message in messages %}#}
-{#                    <li>{{ message }}</li>#}
-{#                {% endfor %}#}
-{#            </ul>#}
-{#        {% endif %}#}
-{#    {% endwith %}#}
-{#    <div class="hero-head">#}
-{#        <nav class="navbar">#}
-{#            <div class="container">#}
-{##}
-{#                <div id="navbarMenuHeroA" class="navbar-menu">#}
-{#                    <div class="navbar-end">#}
-{#                        {% if not current_user.is_authenticated %}#}
-{#                            <a href="{{ url_for('login') }}" class="navbar-item">#}
-{#                                Login#}
-{#                            </a>#}
-{#                            <a href="{{ url_for('signup') }}" class="navbar-item">#}
-{#                                Sign Up#}
-{#                            </a>#}
-{#                        {% endif %}#}
-{#                        {% if current_user.is_authenticated %}#}
-{#                            &nbsp;&nbsp;&nbsp;#}
-{#                            <a href="{{ url_for('logout') }}" class="navbar-item">#}
-{#                                Logout#}
-{#                            </a>#}
-{#                            &nbsp;&nbsp;&nbsp;#}
-{#                            <a href="{{ url_for('profile') }}" class="navbar-item">#}
-{#                                Profile#}
-{#                            </a>#}
-{#                        {% endif %}#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </nav>#}
-{#    </div>#}
-{##}
-{#    <div class="hero-body">#}
-{#        <div class="container has-text-centered">#}
-{#            {% block content %}#}
-{#            {% endblock %}#}
-{#        </div>#}
-{#    </div>#}
-{#</section>#}
 <nav class="navbar fixed-bottom navbar-light bg-light" style="background-color: black !important;">
     <a class="navbar-brand" href="#">Fixed bottom</a>
 </nav>
