@@ -1,26 +1,82 @@
+<!-- templates/signup.html -->
+
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Upload Content</h1>
-    <form action="" method="post" enctype=multipart/form-data novalidate>
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.from_date.label }}<br>
-            {{ form.from_date(type='date') }}
-        </p>
-        <p>
-            {{ form.to_date.label }}<br>
-            {{ form.to_date(type='date') }}
-        </p>
-        <p>
-            {{ form.linie.label }}<br>
-            {{ form.linie }}
-        </p>
-        <p>
-            {{ form.content.label }}<br>
-            {{ form.content }}
-        </p>
+    <div class="column is-4 is-offset-4">
+        <h3 class="title">Add Data Instance</h3>
+        <div class="box">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        {{ messages[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-        <p>{{ form.submit() }}</p>
-    </form>
+            <form method="POST" enctype=multipart/form-data novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="card">
+                    <div class="card-header">
+                        Data Instance
+                    </div>
+                    <div class="card-body">
+
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large form-control" type="date" name="from_date"
+                                               placeholder="From Date"
+                                               autofocus="">
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large form-control" type="date" name="to_date"
+                                               placeholder="To Date"
+                                               autofocus="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large form-control" type="number" name="linie"
+                                               placeholder="Linie"
+                                               autofocus="">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large" type="file" name="content"
+                                               placeholder="Content"
+                                               autofocus="">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-success" type="submit">Add Data Instance</button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
 {% endblock %}

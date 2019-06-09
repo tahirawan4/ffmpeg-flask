@@ -38,6 +38,7 @@ def profile():
 
 
 @app.route('/uploads/<filename>')
+@login_required
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
@@ -48,6 +49,7 @@ def allowed_file(filename):
 
 
 @app.route('/upload_file', methods=['GET', 'POST'])
+@login_required
 def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
@@ -77,8 +79,10 @@ def upload_file():
 
 
 @app.route('/upload/content', methods=['GET', 'POST'])
+@login_required
 def upload_content():
     form = UploadForm()
+
     if request.method == 'POST':
         if form.validate():
             file = request.files['content']
@@ -90,11 +94,13 @@ def upload_content():
             db.session.add(upload_content)
             db.session.commit()
             flash('Content Uploaded Successfully')
+            return redirect(url_for('data_instances'))
 
     return render_template('upload_content.html', form=form)
 
 
 @app.route('/add_user', methods=['GET', 'POST'])
+@login_required
 def add_user():
     if request.form:
         email = request.form.get('email')
@@ -119,9 +125,42 @@ def add_user():
 
         return redirect(url_for('platform_users'))
 
-    return render_template('add_user.html', add_user='active')
+    return render_template('add_user.html', add_user='active', user=None)
+
+
+@app.route('/edit_user/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_user(id):
+    user = User.query.filter_by(id=id).first()
+    if request.form:
+        password = request.form.get('password')
+        user.first_name = request.form.get('first_name') or user.first_name
+        user.first_name = request.form.get('last_name') or user.last_name
+        user.password = generate_password_hash(password, method='sha256')
+        db.session.commit()
+        return redirect(url_for('platform_users'))
+
+    return render_template('add_user.html', add_user='active', user=user)
+
+
+@app.route('/delete_user/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_user(id):
+    user = User.query.filter_by(id=id).first()
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('platform_users'))
 
 
 @app.route('/platform_users', methods=['GET', 'POST'])
+@login_required
 def platform_users():
-    return render_template('platform_users.html', platform_users='active')
+    users = User.query.all()
+    return render_template('platform_users.html', platform_users='active', users=users)
+
+
+@app.route('/data_instances', methods=['GET', 'POST'])
+@login_required
+def data_instances():
+    data_instances = UploadedContent.query.all()
+    return render_template('data_instances.html', data_instance='active', data_instances=data_instances)

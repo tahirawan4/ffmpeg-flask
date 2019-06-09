@@ -14,40 +14,62 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="POST" action="{{ url_for('add_user') }}">
-                <div class="field">
-                    <div class="control form-group">
-                        <label for="email">Email:</label>
-                        <input class="input is-large form-control" type="email" name="email" placeholder="Email"
-                               autofocus="">
+            <form method="POST">
+                <div class="card">
+                    <div class="card-header">
+                        Add User
+                    </div>
+                    <div class="card-body">
+
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large form-control" type="email" name="email"
+                                               placeholder="Email"
+                                               autofocus="" {% if user %}disabled value="{{ user.email }}"{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+
+                                        <input class="input is-large form-control" type="text" name="first_name"
+                                               placeholder="First Name" autofocus="" {% if user %}value="{{ user.first_name }}" {% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+
+                                        <input class="input is-large form-control" type="text" name="last_name"
+                                               placeholder="Last Name"
+                                               autofocus="" {% if user %}value="{{ user.last_name }}" {% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+
+                                        <input class="input is-large form-control" type="password" name="password"
+                                               placeholder="Password">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-success" type="submit">Add User</button>
+                        </div>
+
                     </div>
                 </div>
 
-                <div class="field">
-                    <div class="control form-group">
-                        <label for="first_name">First Name:</label>
-                        <input class="input is-large form-control" type="text" name="first_name"
-                               placeholder="First Name" autofocus="">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="control form-group">
-                        <label for="last_name">Last Name:</label>
-                        <input class="input is-large form-control" type="text" name="last_name" placeholder="Last Name"
-                               autofocus="">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="control form-group">
-                        <label for="password">Password:</label>
-                        <input class="input is-large form-control" type="password" name="password"
-                               placeholder="Password">
-                    </div>
-                </div>
-
-                <button class="btn btn-success" type="submit" style="background: pink;">Add User</button>
             </form>
         </div>
     </div>
