@@ -15,6 +15,10 @@ from flask import url_for, redirect
 
 # main = Blueprint('main', __name__)
 
+@app.route('/<path:path>')
+def static_file(path):
+    return app.send_static_file(path)
+
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
@@ -29,7 +33,7 @@ def profile():
         db.session.commit()
         return redirect('/profile')
 
-    return render_template('profile.html', user=current_user)
+    return render_template('profile.html', user=current_user, profile='active')
 
 
 @app.route('/uploads/<filename>')

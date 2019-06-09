@@ -12,7 +12,7 @@ UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'media/')
 # ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'mp4'])
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 # def create_app():
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
