@@ -203,7 +203,7 @@ def playlist():
             "Linie": str(instance.linie),
             "date_from": instance.from_date.strftime("%m.%d.%Y"),
             "to_from": instance.to_date.strftime("%m.%d.%Y"),
-            "filename": "{}{}/{}".format(request.url_root, 'uploaded_file', instance.content)
+            "filename": "{}{}/{}".format(request.url_root, 'uploads', instance.content)
         })
 
     return jsonify(data)
