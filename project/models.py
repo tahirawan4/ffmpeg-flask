@@ -45,6 +45,8 @@ class UploadedContent(db.Model):
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
     file_type = db.Column(db.String(200))
     data_instance = db.Column(db.Integer, db.ForeignKey('data_instance.id'))
+    status = db.Column(db.String(200))  # Processing Or Processed
+    coordinates = db.Column(db.String(500))
 
 
 class DataInstance(db.Model):

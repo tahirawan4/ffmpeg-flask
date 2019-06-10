@@ -10,7 +10,7 @@ class UploadForm(FlaskForm):
     linie = IntegerField()
     data_instance = IntegerField()
     content = FileField('Content')
-
+    coordinates = StringField('Coordinates')
     submit = SubmitField('Submit')
     # username = StringField('Username', [validators.Length(min=3, max=25)])
     # email = StringField('Email Address', [validators.Length(min=6, max=35)])

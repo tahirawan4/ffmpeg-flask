@@ -1,6 +1,7 @@
 # main.py
 import datetime
 import json
+import threading
 
 import os
 import subprocess
@@ -94,28 +95,56 @@ def upload_content():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             file_type = magic.from_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_type = 'mp4' if 'mp4' in file_type.lower() else file_type
             second_filename = '{}_{}'.format(datetime.datetime.now().strftime("%y%m%d_%H%M%S"),
                                              secure_filename(file.filename))
             upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                              to_date=form.to_date.data,
                                              content=second_filename, linie=form.linie.data or 0, file_type=file_type,
-                                             data_instance=form.data_instance.data)
+                                             data_instance=form.data_instance.data, status='Processing',
+                                             coordinates=form.coordinates.data)
 
             db.session.add(upload_content)
             db.session.commit()
 
             data_instance = DataInstance.query.filter_by(id=upload_content.data_instance).first()
 
-            convert_video(filename, second_filename, data_instance.ffmpeg_params)
+            convert_video(filename, second_filename, data_instance.ffmpeg_params, upload_content.id)
             flash('Content Uploaded Successfully')
             return redirect(url_for('uploaded_contents'))
 
-    return render_template('upload_content.html', form=form, data_instances=data_instances)
+    return render_template('upload_content.html', form=form, data_instances=data_instances, upload_content=None)
+
+
+@app.route('/edit/<int:id>/upload/content', methods=['GET', 'POST'])
+@login_required
+def edid_upload_content(id):
+    form = UploadForm()
+    upload_content = UploadedContent.query.filter_by(id=id).first()
+    if current_user.get_user_role() == 'admin':
+        data_instances = DataInstance.query.all()
+    else:
+        data_instances = current_user.data_instances
+    if request.method == 'POST':
+        if form.validate():
+            upload_content.from_date = form.from_date.data
+            upload_content.to_date = form.to_date.data
+            upload_content.linie = form.linie.data
+            upload_content.data_instance = form.data_instance.data
+            upload_content.coordinates = form.coordinates.data
+            db.session.commit()
+            flash('Content Updated Successfully')
+            return redirect(url_for('uploaded_contents'))
+
+    return render_template('upload_content.html', form=form, data_instances=data_instances,
+                           upload_content=upload_content)
 
 
 @app.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     roles = Role.query.all()
     if request.form:
         email = request.form.get('email')
@@ -147,6 +176,8 @@ def add_user():
 @app.route('/edit_user/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(id):
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     roles = Role.query.all()
     user = User.query.filter_by(id=id).first()
     if request.form:
@@ -164,6 +195,8 @@ def edit_user(id):
 @app.route('/delete_user/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_user(id):
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     user = User.query.filter_by(id=id).first()
     db.session.delete(user)
     db.session.commit()
@@ -182,6 +215,8 @@ def delete_instance(id):
 @app.route('/platform_users', methods=['GET', 'POST'])
 @login_required
 def platform_users():
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     users = User.query.all()
     data_instances = DataInstance.query.all()
     return render_template('platform_users.html', platform_users='active', users=users, data_instances=data_instances)
@@ -202,25 +237,53 @@ def uploaded_contents():
     return render_template('uploaded_contents.html', uploaded_contents='active', data_instances=data_instances)
 
 
-def convert_video(video_input, video_output, ffmpeg_params):
-    print(ffmpeg_params.split(' '))
+#
+# def popenAndCall(onExit, *popenArgs, **popenKWArgs):
+#     """
+#     Runs a subprocess.Popen, and then calls the function onExit when the
+#     subprocess completes.
+#
+#     Use it exactly the way you'd normally use subprocess.Popen, except include a
+#     callable to execute as the first argument. onExit is a callable object, and
+#     *popenArgs and **popenKWArgs are simply passed up to subprocess.Popen.
+#     """
+#     def runInThread(onExit, popenArgs, popenKWArgs):
+#         proc = subprocess.Popen(*popenArgs, **popenKWArgs)
+#         proc.wait()
+#         onExit()
+#         return
+#
+#     thread = threading.Thread(target=runInThread,
+#                               args=(onExit, popenArgs, popenKWArgs))
+#     thread.start()
+#
+#     return thread # returns immediately after the thread starts
+#
+
+
+
+def runInThread(content_id, popenArgs, popenKWArgs):
+    proc = subprocess.Popen(popenArgs)
+    proc.wait()
+    # uploaded = UploadedContent.query.filter_by(id=content_id).first()
+    # uploaded.status = "Processed"
+    # db.session.commit()
+    return
+
+
+def convert_video(video_input, video_output, ffmpeg_params, content_id):
     cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input)]
     cmds.extend(ffmpeg_params.split(' '))
     cmds.extend([os.path.join(app.config['UPLOAD_FOLDER'], video_output)])
 
-    # cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input),
-    #         '-vf', 'scale=1440x900', '-vcodec', 'libx264', '-an', '-sn', '-map_metadata', '-1', '-preset', 'slower',
-    #         '-crf', '15', '-r', '25', '-pix_fmt', 'yuv420p', '-t', '14',
-    #         os.path.join(app.config['UPLOAD_FOLDER'], video_output)]
-
-    subprocess.Popen(cmds)
+    thread = threading.Thread(target=runInThread, args=(content_id, cmds, None))
+    thread.start()
 
 
 @app.route('/playlist', methods=['GET'])
 @login_required
 def playlist():
     now = datetime.datetime.now().date()
-    print(now)
     if current_user.get_user_role() == 'admin':
         data_instances = UploadedContent.query.filter(db.func.date(UploadedContent.from_date) <= now,
                                                       db.func.date(UploadedContent.to_date) >= now).all()
@@ -261,6 +324,8 @@ def data_instances():
 @app.route('/add-data-instance', methods=['GET', 'POST'])
 @login_required
 def add_data_instabce_new():
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     if request.form:
         data_type = request.form.get('data_type')
         scale_param = request.form.get('scale_param')
@@ -282,6 +347,8 @@ def add_data_instabce_new():
 @app.route('/edit-data-instance/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_data_instabce_new(id):
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     data_instance = DataInstance.query.filter_by(id=id).first()
     if request.form:
         data_type = request.form.get('data_type')
@@ -306,6 +373,8 @@ def edit_data_instabce_new(id):
 @app.route('/delete_data_instance/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_data_instance(id):
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     data = DataInstance.query.filter_by(id=id).first()
     db.session.delete(data)
     db.session.commit()
@@ -315,6 +384,8 @@ def delete_data_instance(id):
 @app.route('/link_data_instance/<int:id>', methods=['POST'])
 @login_required
 def link_user_instance(id):
+    if current_user.get_user_role() != 'admin':
+        return redirect(url_for('data_instances'))
     user = User.query.filter_by(id=id).first()
     instances = request.form.getlist('instances[]')
     user.data_instances = []

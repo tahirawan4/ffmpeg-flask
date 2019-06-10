@@ -27,7 +27,7 @@
                 <td><a href="{{ url_for('uploaded_file', filename=instance.content) }}" target="_blank"><img
                         src="{{ url_for('uploaded_file', filename=instance.content) }}" width="50" height="50"></a></td>
                  <td>{{ instance.file_type }}</td>
-                <td>{% if current_user.get_user_role == 'admin' or instance.user == current_user.id %}<a href="{{ url_for('delete_instance', id=instance.id) }}" class="btn btn-danger">Delete</a>{% endif %}
+                <td> {% if current_user.get_user_role() == 'admin' or instance.user == current_user.id %}<a href="{{ url_for('delete_instance', id=instance.id) }}" class="btn btn-danger">Delete</a> <a href="{{ url_for('edid_upload_content', id=instance.id) }}" class="btn btn-primary">Edit</a>{% endif %}
             </tr>
         {% endfor %}
         </tbody>
