@@ -70,9 +70,13 @@
         <ul class="navbar-nav mr-auto">
 
             {% if current_user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link {{ platform_users }}" href="{{ url_for('platform_users') }}">Users</a>
-                </li>
+                {% if current_user.get_user_role() == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ platform_users }}"
+                           href="{{ url_for('platform_users') }}">Users/Linking</a>
+                    </li>
+                {% endif %}
+
                 <li class="nav-item">
                     <a class="nav-link {{ uploaded_contents }}" href="{{ url_for('uploaded_contents') }}">Uploaded
                         Contents</a>

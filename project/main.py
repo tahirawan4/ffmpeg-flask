@@ -83,7 +83,10 @@ def upload_file():
 @login_required
 def upload_content():
     form = UploadForm()
-    data_instances = DataInstance.query.all()
+    if current_user.get_user_role() == 'admin':
+        data_instances = DataInstance.query.all()
+    else:
+        data_instances = current_user.data_instances
     if request.method == 'POST':
         if form.validate():
             import magic
@@ -97,10 +100,13 @@ def upload_content():
                                              to_date=form.to_date.data,
                                              content=second_filename, linie=form.linie.data or 0, file_type=file_type,
                                              data_instance=form.data_instance.data)
+
             db.session.add(upload_content)
             db.session.commit()
 
-            convert_video(filename, second_filename)
+            data_instance = DataInstance.query.filter_by(id=upload_content.data_instance).first()
+
+            convert_video(filename, second_filename, data_instance.ffmpeg_params)
             flash('Content Uploaded Successfully')
             return redirect(url_for('uploaded_contents'))
 
@@ -184,16 +190,28 @@ def platform_users():
 @app.route('/uploaded_contents', methods=['GET', 'POST'])
 @login_required
 def uploaded_contents():
-    data_instances = UploadedContent.query.all()
+    if current_user.get_user_role() == 'admin':
+        data_instances = UploadedContent.query.all()
+    else:
+        data_instances = current_user.data_instances
+        data = []
+        for instance in data_instances:
+            data.extend(UploadedContent.query.filter_by(data_instance=instance.id))
+        data_instances = data
+
     return render_template('uploaded_contents.html', uploaded_contents='active', data_instances=data_instances)
 
 
-def convert_video(video_input, video_output):
-    print(os.path.join(app.config['UPLOAD_FOLDER'], video_input))
-    cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input),
-            '-vf', 'scale=1440x900', '-vcodec', 'libx264', '-an', '-sn', '-map_metadata', '-1', '-preset', 'slower',
-            '-crf', '15', '-r', '25', '-pix_fmt', 'yuv420p', '-t', '14',
-            os.path.join(app.config['UPLOAD_FOLDER'], video_output)]
+def convert_video(video_input, video_output, ffmpeg_params):
+    print(ffmpeg_params.split(' '))
+    cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input)]
+    cmds.extend(ffmpeg_params.split(' '))
+    cmds.extend([os.path.join(app.config['UPLOAD_FOLDER'], video_output)])
+
+    # cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input),
+    #         '-vf', 'scale=1440x900', '-vcodec', 'libx264', '-an', '-sn', '-map_metadata', '-1', '-preset', 'slower',
+    #         '-crf', '15', '-r', '25', '-pix_fmt', 'yuv420p', '-t', '14',
+    #         os.path.join(app.config['UPLOAD_FOLDER'], video_output)]
 
     subprocess.Popen(cmds)
 
@@ -201,14 +219,28 @@ def convert_video(video_input, video_output):
 @app.route('/playlist', methods=['GET'])
 @login_required
 def playlist():
-    data_instances = UploadedContent.query.all()
+    now = datetime.datetime.now().date()
+    print(now)
+    if current_user.get_user_role() == 'admin':
+        data_instances = UploadedContent.query.filter(db.func.date(UploadedContent.from_date) <= now,
+                                                      db.func.date(UploadedContent.to_date) >= now).all()
+
+    else:
+        data_instances = current_user.data_instances
+        data = []
+        for instance in data_instances:
+            data.extend(UploadedContent.query.filter(db.func.date(UploadedContent.from_date) <= now,
+                                                     db.func.date(UploadedContent.to_date) >= now,
+                                                     UploadedContent.data_instance == instance.id).all())
+        data_instances = data
+
     data = []
     for instance in data_instances:
         data.append({
             "type": str(instance.file_type),
             "Linie": str(instance.linie),
             "date_from": instance.from_date.strftime("%m.%d.%Y"),
-            "to_from": instance.to_date.strftime("%m.%d.%Y"),
+            "date_to": instance.to_date.strftime("%m.%d.%Y"),
             "filename": "{}{}/{}".format(request.url_root, 'uploads', instance.content)
         })
 
@@ -218,7 +250,11 @@ def playlist():
 @app.route('/all_data_instances', methods=['GET', 'POST'])
 @login_required
 def data_instances():
-    data_instances = DataInstance.query.all()
+    if current_user.get_user_role() == 'admin':
+        data_instances = DataInstance.query.all()
+    else:
+        data_instances = current_user.data_instances
+
     return render_template('data_instances.html', data_instance='active', data_instances=data_instances)
 
 
