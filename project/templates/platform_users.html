@@ -15,6 +15,7 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
+            <th>Instances</th>
             <th></th>
         </tr>
         </thead>
@@ -24,8 +25,84 @@
                 <td>{{ user.first_name }}</td>
                 <td>{{ user.last_name }}</td>
                 <td>{{ user.email }}</td>
-                <td><a href="{{ url_for('delete_user', id=user.id) }}" class="btn btn-danger">Delete</a> <a href="{{ url_for('edit_user', id=user.id) }}"
-                                                                     class="btn btn-primary">Edit</a></td>
+                <td>{% for instance in user.data_instances %}{{ instance.name }}, {% endfor %}</td>
+                <td><a href="{{ url_for('delete_user', id=user.id) }}" class="btn btn-danger">Delete</a> <a
+                        href="{{ url_for('edit_user', id=user.id) }}"
+                        class="btn btn-primary">Edit</a>
+                    <button type="button" class="btn btn-success" data-toggle="modal"
+                            data-target="#linking_modal_{{ user.id }}">
+                        Link
+                    </button>
+                </td>
+
+
+                <!-- Modal -->
+                <div class="modal fade" id="linking_modal_{{ user.id }}" tabindex="-1" role="dialog"
+                     aria-labelledby="exampleModalScrollableTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalScrollableTitle">Link Data Instances</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" action="{{ url_for('link_user_instance', id=user.id ) }}">
+
+                                    <div class="card">
+                                        <div class="card-header">
+                                            User Linking
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+
+                                                <div class="col-12">
+                                                    <div class="field">
+                                                        <div class="control form-group">
+                                                            <input class="input is-large form-control" type="text"
+                                                                   name="name"
+                                                                   autofocus=""
+                                                                   value="{{ user.first_name }} {{ user.first_name }}"
+                                                                   disabled>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <div class="field">
+                                                        <div class="control form-group">
+                                                            <select name="instances[]" multiple>
+                                                                {% for instance in data_instances %}
+                                                                    <option value="{{ instance.id }}" {% if instance in user.data_instances %}selected{% endif %}>{{ instance.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <button class="btn btn-success" type="submit">Add Linking</button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </form>
+
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </tr>
         {% endfor %}
         </tbody>

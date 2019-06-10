@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from project.forms import UploadForm
-from .models import User, UploadedContent
+from .models import User, UploadedContent, DataInstance, Role
 from . import db, app, ALLOWED_EXTENSIONS
 from flask import url_for, redirect
 
@@ -83,7 +83,7 @@ def upload_file():
 @login_required
 def upload_content():
     form = UploadForm()
-
+    data_instances = DataInstance.query.all()
     if request.method == 'POST':
         if form.validate():
             import magic
@@ -95,24 +95,27 @@ def upload_content():
                                              secure_filename(file.filename))
             upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                              to_date=form.to_date.data,
-                                             content=second_filename, linie=form.linie.data or 0, file_type=file_type)
+                                             content=second_filename, linie=form.linie.data or 0, file_type=file_type,
+                                             data_instance=form.data_instance.data)
             db.session.add(upload_content)
             db.session.commit()
 
             convert_video(filename, second_filename)
             flash('Content Uploaded Successfully')
-            return redirect(url_for('data_instances'))
+            return redirect(url_for('uploaded_contents'))
 
-    return render_template('upload_content.html', form=form)
+    return render_template('upload_content.html', form=form, data_instances=data_instances)
 
 
 @app.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
+    roles = Role.query.all()
     if request.form:
         email = request.form.get('email')
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
+        role = request.form.get('role')
         password = request.form.get('password')
 
         user = User.query.filter_by(
@@ -123,7 +126,7 @@ def add_user():
             return redirect(url_for('add_user'))
 
         # create new user with the form data. Hash the password so plaintext version isn't saved.
-        new_user = User(email=email, first_name=first_name, last_name=last_name,
+        new_user = User(email=email, first_name=first_name, last_name=last_name, role=role,
                         password=generate_password_hash(password, method='sha256'))
 
         # add the new user to the database
@@ -132,22 +135,24 @@ def add_user():
 
         return redirect(url_for('platform_users'))
 
-    return render_template('add_user.html', add_user='active', user=None)
+    return render_template('add_user.html', add_user='active', user=None, roles=roles)
 
 
 @app.route('/edit_user/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_user(id):
+    roles = Role.query.all()
     user = User.query.filter_by(id=id).first()
     if request.form:
         password = request.form.get('password')
         user.first_name = request.form.get('first_name') or user.first_name
         user.first_name = request.form.get('last_name') or user.last_name
+        user.role = request.form.get('role') or user.role
         user.password = generate_password_hash(password, method='sha256')
         db.session.commit()
         return redirect(url_for('platform_users'))
 
-    return render_template('add_user.html', add_user='active', user=user)
+    return render_template('add_user.html', add_user='active', user=user, roles=roles)
 
 
 @app.route('/delete_user/<int:id>', methods=['GET', 'POST'])
@@ -165,21 +170,22 @@ def delete_instance(id):
     instance = UploadedContent.query.filter_by(id=id).first()
     db.session.delete(instance)
     db.session.commit()
-    return redirect(url_for('data_instances'))
+    return redirect(url_for('uploaded_contents'))
 
 
 @app.route('/platform_users', methods=['GET', 'POST'])
 @login_required
 def platform_users():
     users = User.query.all()
-    return render_template('platform_users.html', platform_users='active', users=users)
+    data_instances = DataInstance.query.all()
+    return render_template('platform_users.html', platform_users='active', users=users, data_instances=data_instances)
 
 
-@app.route('/data_instances', methods=['GET', 'POST'])
+@app.route('/uploaded_contents', methods=['GET', 'POST'])
 @login_required
-def data_instances():
+def uploaded_contents():
     data_instances = UploadedContent.query.all()
-    return render_template('data_instances.html', data_instance='active', data_instances=data_instances)
+    return render_template('uploaded_contents.html', uploaded_contents='active', data_instances=data_instances)
 
 
 def convert_video(video_input, video_output):
@@ -207,3 +213,78 @@ def playlist():
         })
 
     return jsonify(data)
+
+
+@app.route('/all_data_instances', methods=['GET', 'POST'])
+@login_required
+def data_instances():
+    data_instances = DataInstance.query.all()
+    return render_template('data_instances.html', data_instance='active', data_instances=data_instances)
+
+
+@app.route('/add-data-instance', methods=['GET', 'POST'])
+@login_required
+def add_data_instabce_new():
+    if request.form:
+        data_type = request.form.get('data_type')
+        scale_param = request.form.get('scale_param')
+        name = request.form.get('name')
+        description = request.form.get('description')
+        ffmpeg_params = request.form.get('ffmpeg_params')
+
+        data_instance = DataInstance(data_type=data_type, scale_param=scale_param, name=name, description=description,
+                                     ffmpeg_params=ffmpeg_params)
+
+        db.session.add(data_instance)
+        db.session.commit()
+
+        return redirect(url_for('data_instances'))
+
+    return render_template('add_data_instance.html', add_user='active', user=None)
+
+
+@app.route('/edit-data-instance/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_data_instabce_new(id):
+    data_instance = DataInstance.query.filter_by(id=id).first()
+    if request.form:
+        data_type = request.form.get('data_type')
+        scale_param = request.form.get('scale_param')
+        name = request.form.get('name')
+        description = request.form.get('description')
+        ffmpeg_params = request.form.get('ffmpeg_params')
+
+        data_instance.data_type = data_type or data_instance.data_type
+        data_instance.scale_param = scale_param or data_instance.scale_param
+        data_instance.name = name or data_instance.name
+        data_instance.description = description or data_instance.description
+        data_instance.ffmpeg_params = ffmpeg_params or data_instance.ffmpeg_params
+
+        db.session.commit()
+
+        return redirect(url_for('data_instances'))
+
+    return render_template('add_data_instance.html', add_user='active', data_instance=data_instance)
+
+
+@app.route('/delete_data_instance/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_data_instance(id):
+    data = DataInstance.query.filter_by(id=id).first()
+    db.session.delete(data)
+    db.session.commit()
+    return redirect(url_for('data_instances'))
+
+
+@app.route('/link_data_instance/<int:id>', methods=['POST'])
+@login_required
+def link_user_instance(id):
+    user = User.query.filter_by(id=id).first()
+    instances = request.form.getlist('instances[]')
+    user.data_instances = []
+    db.session.commit()
+    for instance_id in instances:
+        data_inst = DataInstance.query.filter_by(id=instance_id).first()
+        user.data_instances.append(data_inst)
+    db.session.commit()
+    return redirect(url_for('platform_users'))

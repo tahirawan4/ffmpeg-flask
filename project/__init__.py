@@ -5,9 +5,18 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from os.path import join, dirname, realpath
 from flask_migrate import Migrate
+from sqlalchemy import MetaData
+
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 
 # init SQLAlchemy so we can use it later in our models
-db = SQLAlchemy()
 UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'media/')
 # ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'mp4'])
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -18,6 +27,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, '../db.sqlite')
+
+
 
 db.init_app(app)
 

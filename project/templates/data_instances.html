@@ -6,31 +6,30 @@
     <br>
     <br>
 
-    <a href="{{ url_for('upload_content') }}" class="btn btn-success">Add Data Instance</a>
+    <a href="{{ url_for('add_data_instabce_new') }}" class="btn btn-success">Add Instance</a>
     <br>
     <br>
     <table id="table_id" class="display">
         <thead>
         <tr>
-            <th>From Date</th>
-            <th>To date</th>
-            <th>Content</th>
-            <th>File type</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Scale Param</th>
             <th></th>
         </tr>
         </thead>
         <tbody>
         {% for instance in data_instances %}
             <tr>
-                <td>{{ instance.from_date }}</td>
-                <td>{{ instance.to_date }}</td>
-                <td><a href="{{ url_for('uploaded_file', filename=instance.content) }}" target="_blank"><img
-                        src="{{ url_for('uploaded_file', filename=instance.content) }}" width="50" height="50"></a></td>
-                 <td>{{ instance.file_type }}</td>
-                <td><a href="{{ url_for('delete_instance', id=instance.id) }}" class="btn btn-danger">Delete</a>
-{#                    <a#}
-{#                        href="{{ url_for('edit_user', id=instance.id) }}"#}
-{#                        class="btn btn-primary">Edit</a></td>#}
+                <td>{{ instance.name }}</td>
+                <td>{{ instance.description }}</td>
+                <td>{{ instance.data_type }}</td>
+                <td>{{ instance.scale_param }}</td>
+                <td><a href="{{ url_for('delete_data_instance', id=instance.id) }}" class="btn btn-danger">Delete</a>
+                    <a
+                            href="{{ url_for('edit_data_instabce_new', id=instance.id) }}"
+                            class="btn btn-primary">Edit</a></td>
             </tr>
         {% endfor %}
         </tbody>

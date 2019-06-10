@@ -37,7 +37,8 @@
                                     <div class="control form-group">
 
                                         <input class="input is-large form-control" type="text" name="first_name"
-                                               placeholder="First Name" autofocus="" {% if user %}value="{{ user.first_name }}" {% endif %}>
+                                               placeholder="First Name" autofocus=""
+                                               {% if user %}value="{{ user.first_name }}" {% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -57,6 +58,19 @@
 
                                         <input class="input is-large form-control" type="password" name="password"
                                                placeholder="Password">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+
+                                        <select class="form-control" name="role">
+                                            {% for role in roles %}
+                                                <option value="{{ role.id }}" {% if user and user.role == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
 
