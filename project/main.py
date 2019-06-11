@@ -114,7 +114,7 @@ def upload_content():
                 upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                                  to_date=form.to_date.data,
                                                  content=second_filename, linie=form.linie.data or 0,
-                                                 file_type=file_type,duration=form.duration.data or 0,
+                                                 file_type=file_type, duration=form.duration.data or 0,
                                                  data_instance=form.data_instance.data, status='Processing',
                                                  coordinates=form.coordinates.data)
 
@@ -123,7 +123,9 @@ def upload_content():
 
                 data_instance = DataInstance.query.filter_by(id=upload_content.data_instance).first()
 
-                convert_video(filename, second_filename, data_instance.ffmpeg_params if file_type == VIDEO else data_instance.ffmpeg_params_image, upload_content.id)
+                convert_video(filename, second_filename,
+                              data_instance.ffmpeg_params if file_type == VIDEO else data_instance.ffmpeg_params_image,
+                              upload_content.id)
                 flash('Content Uploaded Successfully')
                 return redirect(url_for('uploaded_contents'))
             else:
@@ -224,7 +226,10 @@ def delete_user(id):
 @login_required
 def delete_instance(id):
     instance = UploadedContent.query.filter_by(id=id).first()
-    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], instance.content))
+    try:
+        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], instance.content))
+    except:
+        pass
     db.session.delete(instance)
     db.session.commit()
     return redirect(url_for('uploaded_contents'))
@@ -354,7 +359,7 @@ def add_data_instabce_new():
         ffmpeg_params_image = request.form.get('ffmpeg_params_image')
 
         data_instance = DataInstance(data_type=data_type, scale_param=scale_param, name=name, description=description,
-                                     ffmpeg_params=ffmpeg_params,ffmpeg_params_image=ffmpeg_params_image)
+                                     ffmpeg_params=ffmpeg_params, ffmpeg_params_image=ffmpeg_params_image)
 
         db.session.add(data_instance)
         db.session.commit()
