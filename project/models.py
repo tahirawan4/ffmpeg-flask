@@ -56,6 +56,7 @@ class DataInstance(db.Model):
     data_type = db.Column(db.String(200))
     scale_param = db.Column(db.String(200))
     ffmpeg_params = db.Column(db.String(1000))
+    ffmpeg_params_image = db.Column(db.String(1000))
 
     def __str__(self):
         return '{}, {}'.format(self.data_type, self.scale_param)

@@ -19,7 +19,7 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 # init SQLAlchemy so we can use it later in our models
 UPLOAD_FOLDER = join(dirname(realpath(__file__)), 'media/')
 # ALLOWED_EXTENSIONS = set(['jpg', 'jpeg', 'mp4'])
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['jpg', 'jpeg','JPG', 'JPEG','MP4','mp4'])
 # def create_app():
 app = Flask(__name__, static_url_path='/static')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

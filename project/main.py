@@ -15,6 +15,9 @@ from .models import User, UploadedContent, DataInstance, Role
 from . import db, app, ALLOWED_EXTENSIONS
 from flask import url_for, redirect
 
+VIDEO = 'Video'
+IMAGE = 'Image'
+
 
 # main = Blueprint('main', __name__)
 
@@ -80,6 +83,13 @@ def upload_file():
     '''
 
 
+def file_type_allowed(upload_file_type):
+    for file_type in ALLOWED_EXTENSIONS:
+        if file_type in upload_file_type:
+            return True
+    return False
+
+
 @app.route('/upload/content', methods=['GET', 'POST'])
 @login_required
 def upload_content():
@@ -88,30 +98,36 @@ def upload_content():
         data_instances = DataInstance.query.all()
     else:
         data_instances = current_user.data_instances
+
     if request.method == 'POST':
         if form.validate():
             import magic
             file = request.files['content']
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_type = magic.from_file(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            file_type = 'mp4' if 'mp4' in file_type.lower() else file_type
-            second_filename = '{}_{}'.format(datetime.datetime.now().strftime("%y%m%d_%H%M%S"),
-                                             secure_filename(file.filename))
-            upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
-                                             to_date=form.to_date.data,
-                                             content=second_filename, linie=form.linie.data or 0, file_type=file_type,
-                                             data_instance=form.data_instance.data, status='Processing',
-                                             coordinates=form.coordinates.data)
+            file.save(os.path.join('/tmp', filename))
+            file_type = magic.from_file(os.path.join('/tmp', secure_filename(file.filename)))
 
-            db.session.add(upload_content)
-            db.session.commit()
+            if file_type_allowed(file_type):
+                file_type = VIDEO if 'mp4' in file_type.lower() else IMAGE
+                second_filename = '{}_{}'.format(datetime.datetime.now().strftime("%y%m%d_%H%M%S"),
+                                                 secure_filename(file.filename))
+                upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
+                                                 to_date=form.to_date.data,
+                                                 content=second_filename, linie=form.linie.data or 0,
+                                                 file_type=file_type,
+                                                 data_instance=form.data_instance.data, status='Processing',
+                                                 coordinates=form.coordinates.data)
 
-            data_instance = DataInstance.query.filter_by(id=upload_content.data_instance).first()
+                db.session.add(upload_content)
+                db.session.commit()
 
-            convert_video(filename, second_filename, data_instance.ffmpeg_params, upload_content.id)
-            flash('Content Uploaded Successfully')
-            return redirect(url_for('uploaded_contents'))
+                data_instance = DataInstance.query.filter_by(id=upload_content.data_instance).first()
+
+                convert_video(filename, second_filename, data_instance.ffmpeg_params if file_type == VIDEO else data_instance.ffmpeg_params_image, upload_content.id)
+                flash('Content Uploaded Successfully')
+                return redirect(url_for('uploaded_contents'))
+            else:
+                flash('File type not supported.')
 
     return render_template('upload_content.html', form=form, data_instances=data_instances, upload_content=None)
 
@@ -207,6 +223,7 @@ def delete_user(id):
 @login_required
 def delete_instance(id):
     instance = UploadedContent.query.filter_by(id=id).first()
+    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], instance.content))
     db.session.delete(instance)
     db.session.commit()
     return redirect(url_for('uploaded_contents'))
@@ -272,7 +289,7 @@ def runInThread(content_id, popenArgs, popenKWArgs):
 
 
 def convert_video(video_input, video_output, ffmpeg_params, content_id):
-    cmds = ['ffmpeg', '-i', os.path.join(app.config['UPLOAD_FOLDER'], video_input)]
+    cmds = ['ffmpeg', '-i', os.path.join('/tmp', video_input)]
     cmds.extend(ffmpeg_params.split(' '))
     cmds.extend([os.path.join(app.config['UPLOAD_FOLDER'], video_output)])
 
@@ -332,9 +349,10 @@ def add_data_instabce_new():
         name = request.form.get('name')
         description = request.form.get('description')
         ffmpeg_params = request.form.get('ffmpeg_params')
+        ffmpeg_params_image = request.form.get('ffmpeg_params_image')
 
         data_instance = DataInstance(data_type=data_type, scale_param=scale_param, name=name, description=description,
-                                     ffmpeg_params=ffmpeg_params)
+                                     ffmpeg_params=ffmpeg_params,ffmpeg_params_image=ffmpeg_params_image)
 
         db.session.add(data_instance)
         db.session.commit()
@@ -356,12 +374,14 @@ def edit_data_instabce_new(id):
         name = request.form.get('name')
         description = request.form.get('description')
         ffmpeg_params = request.form.get('ffmpeg_params')
+        ffmpeg_params_image = request.form.get('ffmpeg_params_image')
 
         data_instance.data_type = data_type or data_instance.data_type
         data_instance.scale_param = scale_param or data_instance.scale_param
         data_instance.name = name or data_instance.name
         data_instance.description = description or data_instance.description
         data_instance.ffmpeg_params = ffmpeg_params or data_instance.ffmpeg_params
+        data_instance.ffmpeg_params_image = ffmpeg_params_image or data_instance.ffmpeg_params_image
 
         db.session.commit()
 

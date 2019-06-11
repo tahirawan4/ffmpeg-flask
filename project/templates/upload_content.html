@@ -8,15 +8,15 @@
         <div class="box">
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
-                    <div class="notification is-danger">
-                        {{ messages[0] }}
-                    </div>
+                    <ul class=flashes>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
             {% endwith %}
-
             <form method="POST" enctype=multipart/form-data novalidate>
                 {{ form.hidden_tag() }}
-
                 <div class="card">
                     <div class="card-header">
                         Data Set
@@ -29,7 +29,7 @@
                                         <input class="input is-large form-control" type="date" name="from_date"
                                                placeholder="From Date"
                                                autofocus=""
-                                               {% if upload_content %}value="{{ upload_content.from_date }}"{% endif %}>
+                                               {% if upload_content %}value="{{ upload_content.from_date }}" {% elif form.from_date.data %}value="{{ form.from_date.data }}"{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -39,7 +39,7 @@
                                         <input class="input is-large form-control" type="date" name="to_date"
                                                placeholder="To Date"
                                                autofocus=""
-                                               {% if upload_content %}value="{{ upload_content.to_date }}"{% endif %}>
+                                               {% if upload_content %}value="{{ upload_content.to_date }}" {% elif form.to_date.data %}value="{{ form.to_date.data }}"{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -50,7 +50,7 @@
                                         <input class="input is-large form-control" type="number" name="linie"
                                                placeholder="Linie"
                                                autofocus=""
-                                               {% if upload_content %}value="{{ upload_content.linie }}"{% endif %}>
+                                               {% if upload_content %}value="{{ upload_content.linie }}" {% elif form.linie.data %}value="{{ form.linie.data }}"{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                                         <input class="input is-large form-control" type="text" name="coordinates"
                                                placeholder="Coordinates"
                                                autofocus=""
-                                               {% if upload_content %}value="{{ upload_content.coordinates }}"{% endif %}>
+                                               {% if upload_content %}value="{{ upload_content.coordinates }}" {% elif form.coordinates.data %}value="{{ form.coordinates.data }}" {% endif %}>
 
                                     </div>
                                 </div>
@@ -88,7 +88,7 @@
                                             {% for instance in data_instances %}
 
                                                 <option value="{{ instance.id }}"
-                                                        {% if upload_content and upload_content.data_instance == instance.id %}selected{% endif %}>{{ instance }}</option>
+                                                        {% if upload_content and upload_content.data_instance == instance.id %}selected{% endif %}>{{ instance.name }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
