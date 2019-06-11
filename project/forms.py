@@ -9,6 +9,7 @@ class UploadForm(FlaskForm):
     to_date = DateField('To Date', [validators.DataRequired()])
     linie = IntegerField()
     data_instance = IntegerField()
+    duration = IntegerField()
     content = FileField('Content')
     coordinates = StringField('Coordinates')
     submit = SubmitField('Submit')

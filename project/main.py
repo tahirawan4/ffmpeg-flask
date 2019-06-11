@@ -114,7 +114,7 @@ def upload_content():
                 upload_content = UploadedContent(user=current_user.id, from_date=form.from_date.data,
                                                  to_date=form.to_date.data,
                                                  content=second_filename, linie=form.linie.data or 0,
-                                                 file_type=file_type,
+                                                 file_type=file_type,duration=form.duration.data or 0,
                                                  data_instance=form.data_instance.data, status='Processing',
                                                  coordinates=form.coordinates.data)
 
@@ -146,6 +146,7 @@ def edid_upload_content(id):
             upload_content.from_date = form.from_date.data
             upload_content.to_date = form.to_date.data
             upload_content.linie = form.linie.data
+            upload_content.duration = form.duration.data
             upload_content.data_instance = form.data_instance.data
             upload_content.coordinates = form.coordinates.data
             db.session.commit()
@@ -317,8 +318,9 @@ def playlist():
     data = []
     for instance in data_instances:
         data.append({
-            "type": str(instance.file_type),
-            "Linie": str(instance.linie),
+            "type": str(instance.file_type).lower(),
+            "linie": str(instance.linie),
+            "duration": str(instance.duration),
             "date_from": instance.from_date.strftime("%m.%d.%Y"),
             "date_to": instance.to_date.strftime("%m.%d.%Y"),
             "filename": "{}{}/{}".format(request.url_root, 'uploads', instance.content)

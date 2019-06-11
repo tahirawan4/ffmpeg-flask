@@ -41,6 +41,7 @@ class UploadedContent(db.Model):
     from_date = db.Column(db.Date)
     to_date = db.Column(db.Date)
     linie = db.Column(db.INTEGER)
+    duration = db.Column(db.INTEGER)
     content = db.Column(db.String(200))
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
     file_type = db.Column(db.String(200))

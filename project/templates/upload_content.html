@@ -54,6 +54,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-6">
+                                <div class="field">
+                                    <div class="control form-group">
+                                        <input class="input is-large form-control" type="number" name="duration"
+                                               placeholder="Duration"
+                                               autofocus=""
+                                               {% if upload_content %}value="{{ upload_content.duration }}" {% elif form.duration.data %}value="{{ form.duration.data }}"{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="col-6">
                                 <div class="field">
